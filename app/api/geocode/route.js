@@ -8,7 +8,7 @@ export async function GET(request) {
   if (q.length < 2) return Response.json({ results: [] });
 
   const presets = matchPeaks(q).map((p) => ({
-    name: p.name, admin1: p.admin1, country: 'ไทย', lat: p.lat, lng: p.lng, preset: true,
+    name: p.name, admin1: p.admin1, country: '', lat: p.lat, lng: p.lng, preset: true,
   }));
 
   let geo = [];

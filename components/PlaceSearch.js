@@ -60,6 +60,12 @@ export default function PlaceSearch({ selected, onSelect, placeholder }) {
         autoComplete="off"
       />
       {loading && <span style={{ position: 'absolute', right: 14, top: 14, fontSize: '0.75rem', color: '#6B7AA8' }}>…</span>}
+      {open && !loading && q.trim().length >= 2 && results.length === 0 && (
+        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4, background: '#0C1226', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '12px 14px', zIndex: 20, boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}>
+          <p style={{ fontSize: '0.86rem', color: '#E8EDFF', marginBottom: 4 }}>ไม่เจอ &ldquo;{q.trim()}&rdquo; 😢</p>
+          <p style={{ fontSize: '0.75rem', color: '#6B7AA8', lineHeight: 1.6 }}>ลองพิมพ์ชื่ออังกฤษ (เช่น Phou Khao Khouay) หรือชื่อเมือง/จังหวัดใกล้ๆ ดูนะ</p>
+        </div>
+      )}
       {open && results.length > 0 && (
         <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4, background: '#0C1226', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, overflow: 'hidden', zIndex: 20, boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}>
           {results.map((r, i) => (
