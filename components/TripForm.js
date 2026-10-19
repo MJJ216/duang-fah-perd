@@ -25,22 +25,25 @@ export default function TripForm({ onResult }) {
   const go = async () => {
     if (!f.place) { setE('เลือกสถานที่จากรายการที่เด้งขึ้นมาก่อนนะ 📍'); return; }
     if (!f.startDate || !f.endDate) { setE('ใส่วันที่ด้วยนะ'); return; }
-    if (f.members.some((m) => !m.nickname)) { setE('ใส่ชื่อเล่นให้ครบทุกคนก่อน'); return; }
     if (parseDay(f.endDate) < parseDay(f.startDate)) { setE('วันสิ้นสุดต้องหลังวันเริ่มนะ'); return; }
     setL(true); setE('');
     const locName = f.place.name;
     try {
       setS('🔮 คำนวณดวงทีม...');
-      const members = f.members.map((m) => {
+      // ชื่อเพื่อนเป็น optional — คิดเฉพาะคนที่ใส่ชื่อ
+      const members = f.members.filter((m) => m.nickname.trim()).map((m) => {
         const be = m.birthYear ? parseInt(m.birthYear) : null;
         const ce = be ? be - 543 : null;
         const sin = calcSin({ nickname: m.nickname, birthYearBE: be ? String(be) : null, pastWeather: 'mixed', hasRainGear: 'sometimes' });
         return { ...m, sin, element: ce ? getElem(ce) : null, zodiac: ce ? `${ZODIAC_TH[getZi(ce)]}${ZODIAC_EMJ[getZi(ce)]}` : null };
       });
-      const teamSin = Math.round(members.reduce((a, m) => a + m.sin, 0) / members.length);
+      // ไม่ใส่ใครเลย → ดวงทีมเป็นกลาง (30) ทำนายจากอากาศจริง + วันมงคลเป็นหลัก
+      const teamSin = members.length ? Math.round(members.reduce((a, m) => a + m.sin, 0) / members.length) : 30;
       const dates = genDates(f.startDate, f.endDate);
       const elems = [...new Set(members.filter((m) => m.element).map((m) => m.element))];
-      const mDesc = members.map((m) => `${m.nickname}${m.birthYear ? ` (ธาตุ${m.element},บาป${m.sin}%)` : ` (บาป~${m.sin}%)`}`).join(', ');
+      const mDesc = members.length
+        ? members.map((m) => `${m.nickname}${m.birthYear ? ` (ธาตุ${m.element},บาป${m.sin}%)` : ` (บาป~${m.sin}%)`}`).join(', ')
+        : 'ไม่ได้ระบุทีม (ทำนายจากอากาศ + วันมงคล)';
       const moon = moonPhase(dates[0]);
       const seed = `${locName}:${f.startDate}:${teamSin}`;
       const meta = { location: locName, teamSin, elems, moon, seed };
@@ -126,11 +129,11 @@ export default function TripForm({ onResult }) {
           <input type="date" style={{ ...IN, flex: 1 }} min={f.startDate || today} value={f.endDate} onChange={(e) => setF({ ...f, endDate: e.target.value })} />
         </div>
       </Fld>
-      <Fld label="ใครไปบ้าง? 👥">
+      <Fld label="ใครไปบ้าง? 👥 (ไม่ใส่ก็ได้)">
         {f.members.map((m, i) => (
           <div key={m.id} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: 10 }}>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <input style={{ ...IN, background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.1)', borderRadius: 0, padding: '6px 0' }} placeholder={`ชื่อเล่นคนที่ ${i + 1} *`} value={m.nickname} onChange={(e) => upd(m.id, 'nickname', e.target.value)} />
+              <input style={{ ...IN, background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.1)', borderRadius: 0, padding: '6px 0' }} placeholder={`ชื่อเล่นคนที่ ${i + 1} (ไม่ใส่ก็ได้)`} value={m.nickname} onChange={(e) => upd(m.id, 'nickname', e.target.value)} />
               <input type="number" style={{ ...IN, background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.06)', borderRadius: 0, padding: '5px 0', fontSize: '0.83rem', color: '#6B7AA8' }} placeholder="ปีเกิด พ.ศ. (ไม่รู้ก็ไม่เป็นไร)" value={m.birthYear} onChange={(e) => upd(m.id, 'birthYear', e.target.value)} />
             </div>
             {f.members.length > 1 && <button onClick={() => del(m.id)} style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.22)', color: '#F87171', width: 28, height: 28, borderRadius: '50%', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>×</button>}

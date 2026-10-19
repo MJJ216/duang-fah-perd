@@ -30,6 +30,7 @@ export default function SinResult({ result, onReset }) {
           <span style={{ fontSize: '2.4rem', fontWeight: 700, marginTop: 14 }}>%</span>
         </div>
         <p style={{ color: '#8B92B8', marginTop: 8 }}>{result.sinLabel}</p>
+        <p style={{ color: 'rgba(107,122,168,0.6)', fontSize: '0.72rem', marginTop: 6 }}>🔮 ดวงวันนี้ · มีขึ้นมีลงในแต่ละวัน</p>
       </div>
 
       <div style={C}><p style={ST}>🤖 คำทำนาย</p><p style={{ fontSize: '0.93rem', lineHeight: 1.8, color: '#E8EDFF' }}>{result.analysis}</p></div>

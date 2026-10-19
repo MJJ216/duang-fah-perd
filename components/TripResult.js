@@ -38,15 +38,19 @@ export default function TripResult({ result, onReset }) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-        {result.members?.map((m, i) => (
-          <div key={i} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 20, padding: '6px 12px', display: 'flex', gap: 7, fontSize: '0.8rem', alignItems: 'center' }}>
-            <span style={{ color: '#E8EDFF' }}>{m.nickname}</span>
-            <span style={{ color: sinCol(m.sin), fontWeight: 700 }}>บาป {m.sin}%</span>
-            {m.element && <span>{ELEM_EMJ[m.element]}</span>}
-          </div>
-        ))}
-      </div>
+      {result.members?.length ? (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+          {result.members.map((m, i) => (
+            <div key={i} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 20, padding: '6px 12px', display: 'flex', gap: 7, fontSize: '0.8rem', alignItems: 'center' }}>
+              <span style={{ color: '#E8EDFF' }}>{m.nickname}</span>
+              <span style={{ color: sinCol(m.sin), fontWeight: 700 }}>บาป {m.sin}%</span>
+              {m.element && <span>{ELEM_EMJ[m.element]}</span>}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p style={{ color: '#6B7AA8', fontSize: '0.8rem', textAlign: 'center' }}>👥 ไม่ได้ระบุทีม — ทำนายจากอากาศจริง + วันมงคล</p>
+      )}
 
       <div style={C}>
         <p style={ST}>📅 วันดีสุดในช่วงนี้</p>

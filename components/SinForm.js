@@ -5,6 +5,7 @@ import { callClaude } from '@/lib/api';
 import {
   ZODIAC_TH, ZODIAC_EMJ, ELEM_EMJ,
   be2ce, getZi, getElem, calcNameNum, calcSin, sinLabel, getBirthDay, todayStr,
+  clampSin, dailyLuck,
 } from '@/lib/astro';
 import { moonPhase } from '@/lib/moon';
 import { charmOf } from '@/lib/charm';
@@ -21,13 +22,15 @@ export default function SinForm({ onResult }) {
     if (be < 2483 || be > 2558) { setE('ใส่ปีเกิดเป็น พ.ศ. นะ เช่น 2537'); return; }
     setL(true); setE('');
     const ce = be2ce(be);
-    const sin = calcSin({ nickname: f.nickname, birthYearBE: String(be), pastWeather: f.pastWeather, hasRainGear: f.hasRainGear });
+    const baseSin = calcSin({ nickname: f.nickname, birthYearBE: String(be), pastWeather: f.pastWeather, hasRainGear: f.hasRainGear });
+    const seed = `${f.nickname}:${be}`;
+    // ดวงขยับรายวัน: base + ดวงประจำวัน (คงที่ทั้งวัน เปลี่ยนเมื่อขึ้นวันใหม่)
+    const sin = clampSin(baseSin + dailyLuck(seed, todayStr()));
     const el = getElem(ce); const zi = getZi(ce);
     const zodiac = `ปี${ZODIAC_TH[zi]} ${ZODIAC_EMJ[zi]}`; const sl = sinLabel(sin);
     const nameNum = calcNameNum(f.nickname);
     const birthDay = getBirthDay(f.birthdate);     // null ถ้าไม่กรอก
     const moon = moonPhase(todayStr());
-    const seed = `${f.nickname}:${be}`;
     const charm = charmOf(el, seed);
     try {
       const dayLine = birthDay ? `\nวันเกิด: ${birthDay.dayName} (สีมงคล${birthDay.color.name})` : '';
