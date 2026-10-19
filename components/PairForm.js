@@ -1,12 +1,12 @@
 'use client';
 import { useState } from 'react';
 import { IN, Fld, Err, SubBtn } from './ui';
-import { be2ce, getZi, getElem, calcSin, ZODIAC_TH, ZODIAC_EMJ } from '@/lib/astro';
+import { be2ce, getZi, getElem, calcSin, ZODIAC_TH, ZODIAC_EMJ, BE_MIN, maxBE } from '@/lib/astro';
 import { compatScore, compatLabel, relationText, elementRelation } from '@/lib/compat';
 
 const person = (p) => {
   const be = p.birthYear ? parseInt(p.birthYear) : null;
-  const ce = be && be >= 2483 && be <= 2558 ? be2ce(be) : null;
+  const ce = be && be >= BE_MIN && be <= maxBE() ? be2ce(be) : null;
   const sin = calcSin({ nickname: p.nickname, birthYearBE: ce ? String(be) : null, pastWeather: 'mixed', hasRainGear: 'sometimes' });
   const zi = ce != null ? getZi(ce) : null;
   return {

@@ -5,7 +5,7 @@ import { callClaude } from '@/lib/api';
 import {
   ZODIAC_TH, ZODIAC_EMJ, ELEM_EMJ,
   be2ce, getZi, getElem, calcNameNum, calcSin, sinLabel, getBirthDay, todayStr,
-  clampSin, dailyLuck,
+  clampSin, dailyLuck, BE_MIN, maxBE,
 } from '@/lib/astro';
 import { moonPhase } from '@/lib/moon';
 import { charmOf } from '@/lib/charm';
@@ -19,7 +19,7 @@ export default function SinForm({ onResult }) {
   const go = async () => {
     if (!f.nickname || !f.birthYear || !f.pastWeather || !f.hasRainGear) { setE('กรอกให้ครบก่อนนะ 555'); return; }
     const be = parseInt(f.birthYear);
-    if (be < 2483 || be > 2558) { setE('ใส่ปีเกิดเป็น พ.ศ. นะ เช่น 2537'); return; }
+    if (be < BE_MIN || be > maxBE()) { setE(`ใส่ปีเกิดเป็น พ.ศ. นะ (${BE_MIN}–${maxBE()}) เช่น 2537`); return; }
     setL(true); setE('');
     const ce = be2ce(be);
     const baseSin = calcSin({ nickname: f.nickname, birthYearBE: String(be), pastWeather: f.pastWeather, hasRainGear: f.hasRainGear });
