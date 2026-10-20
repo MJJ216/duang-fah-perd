@@ -9,6 +9,7 @@ import {
 } from '@/lib/astro';
 import { skyFinal, rainTiming } from '@/lib/weather';
 import { moonPhase } from '@/lib/moon';
+import { remedyTier } from '@/lib/remedies';
 import { saveHistory } from '@/lib/storage';
 
 export default function TripForm({ onResult }) {
@@ -46,6 +47,8 @@ export default function TripForm({ onResult }) {
         : 'ไม่ได้ระบุทีม (ทำนายจากอากาศ + วันมงคล)';
       const moon = moonPhase(dates[0]);
       const seed = `${locName}:${f.startDate}:${teamSin}`;
+      const tier = remedyTier(teamSin);
+      const remNote = `แก้เคล็ด ${tier.count} ข้อ ระดับ "${tier.label}" (บาปน้อยให้เบาๆ บาปมากให้จัดเต็ม) มีของตลกๆ ที่หาซื้อได้ที่ร้านสะดวกซื้ออย่างน้อย 1 ข้อ ทุกข้อ specific และไม่ซ้ำแนวกัน`;
       const meta = { location: locName, teamSin, elems, moon, seed };
 
       // ── 1. ดึงอากาศจริง (ใช้พิกัดที่เลือกไว้แล้ว ไม่ต้อง geocode ซ้ำ) ──
@@ -76,14 +79,14 @@ export default function TripForm({ onResult }) {
         const wxDesc = days.map((d) => `${d.date}(${d.dayName}): ฟ้าเปิด ${d.sky}%, ฝน ${d.precip}%${d.rain ? `, ${d.rain}` : ''}`).join('\n');
         setS('🤖 AI กำลังวิเคราะห์ดวงทริป...');
         ai = await callClaude(
-          `[ROLE] นักพยากรณ์ทริปเดินป่า Gen Z ผสมโหราศาสตร์จีน 5 ธาตุ ความเชื่อพื้นบ้านไทย พูดกวนๆ ไทย+อังกฤษ\n\nสถานที่: ${locName}${resolvedPlace ? ` (${resolvedPlace})` : ''}\nช่วง: ${fmtDate(f.startDate)}–${fmtDate(f.endDate)}\nสมาชิก: ${mDesc}\nบาปเฉลี่ยทีม: ${teamSin}%\nธาตุในทีม: ${elems.join(',') || 'ไม่ทราบ'}\nเฟสพระจันทร์: ${moon.name} ${moon.emoji}\n\nคะแนนฟ้าเปิดรายวัน (คำนวณจากอากาศจริง Open-Meteo + ดวงทีมแล้ว ห้ามแก้ตัวเลข):\n${wxDesc}\n\nวิเคราะห์ดวงทริป 2-3 ประโยค กวนๆ อิงทั้งตัวเลขอากาศจริงและธาตุของทีม\nแก้เคล็ด 5 ข้อ specific มาก: 5ธาตุ counter ธาตุหลักในทีม, สีมงคล, ความเชื่อไทย, เลขมงคล, ของขลัง\n\nตอบ JSON เท่านั้น:\n{"analysis":"string","remedies":["string","string","string","string","string"],"vibe":"string"}`,
+          `[ROLE] นักพยากรณ์ทริปเดินป่า Gen Z ผสมโหราศาสตร์จีน 5 ธาตุ ความเชื่อพื้นบ้านไทย พูดกวนๆ ไทย+อังกฤษ\n\nสถานที่: ${locName}${resolvedPlace ? ` (${resolvedPlace})` : ''}\nช่วง: ${fmtDate(f.startDate)}–${fmtDate(f.endDate)}\nสมาชิก: ${mDesc}\nบาปเฉลี่ยทีม: ${teamSin}%\nธาตุในทีม: ${elems.join(',') || 'ไม่ทราบ'}\nเฟสพระจันทร์: ${moon.name} ${moon.emoji}\n\nคะแนนฟ้าเปิดรายวัน (คำนวณจากอากาศจริง Open-Meteo + ดวงทีมแล้ว ห้ามแก้ตัวเลข):\n${wxDesc}\n\nวิเคราะห์ดวงทริป 2-3 ประโยค กวนๆ อิงทั้งตัวเลขอากาศจริงและธาตุของทีม\n${remNote} อิงธาตุหลักในทีม สีมงคล ความเชื่อไทย เลขมงคล ของขลัง\nห้ามใส่ตัวเลข % บาปซ้ำในคำวิเคราะห์ (แสดงอยู่ในหน้าจอแล้ว)\n\nตอบ JSON เท่านั้น:\n{"analysis":"string","remedies":["string"],"vibe":"string"}`,
           'trip', meta,
         );
       } else {
         // ── 2b. เกิน 16 วัน / อากาศล่ม → ให้ AI ประมาณตามฤดูกาล ──
         setS('🤖 AI ประมาณจากฤดูกาล... รอแป๊บนึงนะ');
         ai = await callClaude(
-          `[ROLE] นักพยากรณ์ทริปเดินป่า Gen Z รู้จักสภาพอากาศตามฤดูกาลในเอเชียตะวันออกเฉียงใต้ดี ผสมโหราศาสตร์จีน 5 ธาตุ ความเชื่อพื้นบ้านไทย\n\nสถานที่: ${locName}\nช่วง: ${fmtDate(f.startDate)}–${fmtDate(f.endDate)}\nวัน: ${dates.join(',')}\nสมาชิก: ${mDesc}\nบาปเฉลี่ยทีม: ${teamSin}%\nธาตุในทีม: ${elems.join(',') || 'ไม่ทราบ'}\nเฟสพระจันทร์: ${moon.name} ${moon.emoji}\n\nประมาณ sky (0-100 สูง=ฟ้าเปิด) และ rain (0-100) ของแต่ละวัน อิงฤดูกาลจริงของ "${locName}" บวกลบ sin penalty (${teamSin}×0.25) และ day bonus (พฤหัส+5,จ/พ/ศ+3,อา0,อ/ส-3)\nวิเคราะห์ดวงทริป 2-3 ประโยค กวนๆ\nแก้เคล็ด 5 ข้อ specific มาก\n\nตอบ JSON เท่านั้น:\n{"dailyScores":[{"date":"YYYY-MM-DD","sky":50,"rain":50}],"analysis":"string","remedies":["string","string","string","string","string"],"vibe":"string"}`,
+          `[ROLE] นักพยากรณ์ทริปเดินป่า Gen Z รู้จักสภาพอากาศตามฤดูกาลในเอเชียตะวันออกเฉียงใต้ดี ผสมโหราศาสตร์จีน 5 ธาตุ ความเชื่อพื้นบ้านไทย\n\nสถานที่: ${locName}\nช่วง: ${fmtDate(f.startDate)}–${fmtDate(f.endDate)}\nวัน: ${dates.join(',')}\nสมาชิก: ${mDesc}\nบาปเฉลี่ยทีม: ${teamSin}%\nธาตุในทีม: ${elems.join(',') || 'ไม่ทราบ'}\nเฟสพระจันทร์: ${moon.name} ${moon.emoji}\n\nประมาณ sky (0-100 สูง=ฟ้าเปิด) และ rain (0-100) ของแต่ละวัน อิงฤดูกาลจริงของ "${locName}" บวกลบ sin penalty (${teamSin}×0.25) และ day bonus (พฤหัส+5,จ/พ/ศ+3,อา0,อ/ส-3)\nวิเคราะห์ดวงทริป 2-3 ประโยค กวนๆ\n${remNote} อิงธาตุหลักในทีม สีมงคล ความเชื่อไทย เลขมงคล ของขลัง\nห้ามใส่ตัวเลข % บาปซ้ำในคำวิเคราะห์ (แสดงอยู่ในหน้าจอแล้ว)\n\nตอบ JSON เท่านั้น:\n{"dailyScores":[{"date":"YYYY-MM-DD","sky":50,"rain":50}],"analysis":"string","remedies":["string"],"vibe":"string"}`,
           'trip', meta,
         );
         if (ai.dailyScores?.length) {

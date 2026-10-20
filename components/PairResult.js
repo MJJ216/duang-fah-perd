@@ -27,21 +27,14 @@ export default function PairResult({ result, onReset }) {
         {chip(b)}
       </div>
 
-      <div style={{ ...C, textAlign: 'center', padding: '32px 20px', background: `radial-gradient(ellipse at 50% -10%, ${col}22 0%, rgba(7,11,26,0) 65%), rgba(255,255,255,0.04)` }}>
-        <p style={{ fontSize: '0.68rem', fontWeight: 700, color: '#6B7AA8', textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 6 }}>ไปด้วยกันแล้วฟ้าเปิด</p>
-        <div style={{ color: col, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', lineHeight: 1 }}>
-          <span style={{ fontSize: '5rem', fontWeight: 800, letterSpacing: '-0.04em' }}>{score}</span>
-          <span style={{ fontSize: '2rem', fontWeight: 700, marginTop: 12 }}>%</span>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+        <ShareCard ref={cardRef} headline={`${a.nickname} 💘 ${b.nickname}`} sub="ดวงคู่หูเดินป่า · ไปด้วยกันแล้วฟ้าเปิด" value={score} valueLabel={label} color={col} vibe={null} />
+        <div style={{ width: '100%', maxWidth: 400 }}>
+          <ShareButtons cardRef={cardRef} filename={`pair-${a.nickname}-${b.nickname}`} shareText={`${a.nickname} กับ ${b.nickname} ไปเดินป่าด้วยกันฟ้าเปิด ${score}%! 💘`} />
         </div>
-        <p style={{ color: '#8B92B8', marginTop: 8 }}>{label}</p>
       </div>
 
       <div style={C}><p style={ST}>🔮 ความสัมพันธ์ธาตุ</p><p style={{ fontSize: '0.93rem', lineHeight: 1.8, color: '#E8EDFF' }}>{relationText}</p></div>
-
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <ShareCard ref={cardRef} headline={`${a.nickname} 💘 ${b.nickname}`} sub="ดวงคู่หูเดินป่า" value={score} valueLabel={label} color={col} vibe={null} />
-      </div>
-      <ShareButtons cardRef={cardRef} filename={`pair-${a.nickname}-${b.nickname}`} shareText={`${a.nickname} กับ ${b.nickname} ไปเดินป่าด้วยกันฟ้าเปิด ${score}%! 💘`} />
 
       <RstBtn onClick={onReset} label="🔄 เช็คคู่ใหม่" />
     </div>

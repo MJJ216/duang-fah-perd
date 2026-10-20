@@ -10,6 +10,7 @@ import {
 import { moonPhase } from '@/lib/moon';
 import { charmOf } from '@/lib/charm';
 import { saveHistory } from '@/lib/storage';
+import { remedyTier } from '@/lib/remedies';
 
 export default function SinForm({ onResult }) {
   const [f, setF] = useState({ nickname: '', birthYear: '', birthdate: '', pastWeather: '', hasRainGear: '' });
@@ -32,10 +33,11 @@ export default function SinForm({ onResult }) {
     const birthDay = getBirthDay(f.birthdate);     // null ถ้าไม่กรอก
     const moon = moonPhase(todayStr());
     const charm = charmOf(el, seed);
+    const tier = remedyTier(sin);
     try {
       const dayLine = birthDay ? `\nวันเกิด: ${birthDay.dayName} (สีมงคล${birthDay.color.name})` : '';
-      const prompt = `[ROLE] นักพยากรณ์ Gen Z เชี่ยวชาญโหราศาสตร์จีน 5 ธาตุ นักษัตร เลขศาสตร์ไทย กรรมพุทธ พูดแบบเพื่อนสนิท ไทย+อังกฤษ Gen Z กวนๆ\n\nชื่อเล่น: ${f.nickname}\nปีเกิด: ${be} พ.ศ. (${ce} ค.ศ.)\nนักษัตร: ${zodiac}\nธาตุ: ${el} ${ELEM_EMJ[el]}\nเลขศาสตร์: ${nameNum}${dayLine}\nเฟสพระจันทร์วันนี้: ${moon.name} ${moon.emoji}\nทริปล่าสุด: ${f.pastWeather === 'closed' ? 'ฟ้าปิด' : f.pastWeather === 'mixed' ? 'ปนๆ' : 'ฟ้าเปิด'}\nพกเสื้อกันฝน: ${f.hasRainGear === 'never' ? 'ไม่เคย' : f.hasRainGear === 'sometimes' ? 'บางที' : 'พกเสมอ'}\nบาป: ${sin}% (${sl})\n\nวิเคราะห์ 3-4 ประโยค อิงธาตุ${el}+นักษัตร${ZODIAC_TH[zi]}+เลขศาสตร์+เฟสพระจันทร์ ตามทฤษฎี 5 ธาตุ\nแก้เคล็ด 5 ข้อ: 5ธาตุ counter ธาตุ${el} / สีมงคล${birthDay ? `วันเกิด(${birthDay.color.name})` : ''} / ความเชื่อไทยภูเขา/ฝน / เลขมงคล / ของขลัง — specific มาก\n\nตอบ JSON เท่านั้น:\n{"analysis":"string","remedies":["string","string","string","string","string"]}`;
-      const ai = await callClaude(prompt, 'sin', { nickname: f.nickname, element: el, zodiacName: ZODIAC_TH[zi], sin, nameNum, dayColor: birthDay?.color || null, moon, seed });
+      const prompt = `[ROLE] นักพยากรณ์ Gen Z เชี่ยวชาญโหราศาสตร์จีน 5 ธาตุ นักษัตร เลขศาสตร์ไทย กรรมพุทธ พูดแบบเพื่อนสนิท ไทย+อังกฤษ Gen Z กวนๆ\n\nชื่อเล่น: ${f.nickname}\nปีเกิด: ${be} พ.ศ. (${ce} ค.ศ.)\nนักษัตร: ${zodiac}\nธาตุ: ${el} ${ELEM_EMJ[el]}\nเลขศาสตร์: ${nameNum}${dayLine}\nเฟสพระจันทร์วันนี้: ${moon.name} ${moon.emoji}\nทริปล่าสุด: ${f.pastWeather === 'closed' ? 'ฟ้าปิด' : f.pastWeather === 'mixed' ? 'ปนๆ' : 'ฟ้าเปิด'}\nพกเสื้อกันฝน: ${f.hasRainGear === 'never' ? 'ไม่เคย' : f.hasRainGear === 'sometimes' ? 'บางที' : 'พกเสมอ'}\nบาป: ${sin}% (${sl})\n\nวิเคราะห์ 3-4 ประโยค อิงธาตุ${el}+นักษัตร${ZODIAC_TH[zi]}+เลขศาสตร์+เฟสพระจันทร์ ตามทฤษฎี 5 ธาตุ ห้ามใส่ตัวเลข % บาปซ้ำในคำวิเคราะห์ (แสดงอยู่ในหน้าจอแล้ว) เรียกผู้ใช้ว่า "คนบาป" ได้อย่างมากหนึ่งครั้ง\nแก้เคล็ด ${tier.count} ข้อ ระดับ "${tier.label}" (บาปน้อยให้เบาๆ บาปมากให้จัดเต็ม) อิงธาตุ${el} สีมงคล${birthDay ? `วันเกิด(${birthDay.color.name})` : ''} ความเชื่อไทยภูเขา/ฝน เลขมงคล ของขลัง และต้องมีของตลกๆ ที่หาซื้อได้ที่ร้านสะดวกซื้อ 1 ข้อ — specific ไม่ซ้ำแนวกัน\n\nตอบ JSON เท่านั้น:\n{"analysis":"string","remedies":["string"]}`;
+      const ai = await callClaude(prompt, 'sin', { nickname: f.nickname, element: el, zodiacName: ZODIAC_TH[zi], sin, nameNum, dayColor: birthDay?.color || null, moon, seed, date: todayStr(), pastWeather: f.pastWeather, hasRainGear: f.hasRainGear, birthDay });
       const result = { sin, sinLabel: sl, element: el, zodiac, nickname: f.nickname, elementEmoji: ELEM_EMJ[el], birthDay, moon, charm: ai.charm || charm, ...ai };
       saveHistory({ kind: 'sin', nickname: f.nickname, sin, element: el, zodiac, sinLabel: sl });
       onResult(result);
@@ -47,7 +49,7 @@ export default function SinForm({ onResult }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <Fld label="ชื่อเล่นแก? 👤"><input style={IN} placeholder="เช่น ต้าว, มิ้น, เปิ้ล..." value={f.nickname} onChange={(e) => setF({ ...f, nickname: e.target.value })} /></Fld>
+      <Fld label="ชื่อเล่นของคนบาป? 👤"><input style={IN} placeholder="เช่น ต้าว, มิ้น, เปิ้ล..." value={f.nickname} onChange={(e) => setF({ ...f, nickname: e.target.value })} /></Fld>
       <Fld label="ปีเกิด (พ.ศ.) 📅"><input style={IN} type="number" placeholder={`เช่น ${maxBE()}`} value={f.birthYear} onChange={(e) => setF({ ...f, birthYear: e.target.value })} /></Fld>
       <Fld label="วันเกิดเต็ม (ไม่บังคับ) 🎂">
         <input style={IN} type="date" value={f.birthdate} onChange={(e) => setF({ ...f, birthdate: e.target.value })} />

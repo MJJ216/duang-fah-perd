@@ -3,6 +3,7 @@ import { useRef } from 'react';
 import { C, ST, Rem, RstBtn, FallbackNote } from './ui';
 import { ShareCard, ShareButtons } from './ShareCard';
 import { sinCol, skyCol, fmtDate, ELEM_EMJ } from '@/lib/astro';
+import { remedyTier } from '@/lib/remedies';
 
 export default function TripResult({ result, onReset }) {
   const sc = sinCol(result.teamSin);
@@ -10,31 +11,17 @@ export default function TripResult({ result, onReset }) {
   const cardRef = useRef(null);
   return (
     <div className="ra" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div style={{ textAlign: 'center' }}>
-        <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>📍 {result.location}</h2>
-        <p style={{ color: '#6B7AA8', marginTop: 4, fontSize: '0.88rem' }}>
-          {fmtDate(result.startDate)} → {fmtDate(result.endDate)}
-          {result.resolvedPlace ? ` · ${result.resolvedPlace}` : ''}
-          {result.moon ? ` · ${result.moon.emoji}${result.moon.name}` : ''}
-        </p>
-        {result.vibe && <span style={{ display: 'inline-block', marginTop: 8, background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.22)', color: '#A78BFA', padding: '4px 12px', borderRadius: 20, fontSize: '0.82rem' }}>{result.vibe}</span>}
-      </div>
-
-      <div style={{ ...C, display: 'flex', padding: 0, overflow: 'hidden', background: `radial-gradient(ellipse at 20% 0%, ${skc}18 0%, transparent 55%), radial-gradient(ellipse at 80% 0%, ${sc}14 0%, transparent 55%), rgba(255,255,255,0.04)` }}>
-        <div style={{ flex: 1, textAlign: 'center', padding: '24px 12px' }}>
-          <p style={{ fontSize: '0.68rem', fontWeight: 700, color: '#6B7AA8', textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 6 }}>ฟ้าจะเปิด</p>
-          <div style={{ color: skc, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', lineHeight: 1 }}>
-            <span style={{ fontSize: '4.2rem', fontWeight: 800, letterSpacing: '-0.04em' }}>{result.avgSky}</span>
-            <span style={{ fontSize: '1.6rem', fontWeight: 700, marginTop: 10 }}>%</span>
-          </div>
-        </div>
-        <div style={{ width: 1, background: 'rgba(255,255,255,0.06)', margin: '16px 0' }} />
-        <div style={{ flex: 1, textAlign: 'center', padding: '24px 12px' }}>
-          <p style={{ fontSize: '0.68rem', fontWeight: 700, color: '#6B7AA8', textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 6 }}>บาปรวมทีม</p>
-          <div style={{ color: sc, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', lineHeight: 1 }}>
-            <span style={{ fontSize: '4.2rem', fontWeight: 800, letterSpacing: '-0.04em' }}>{result.teamSin}</span>
-            <span style={{ fontSize: '1.6rem', fontWeight: 700, marginTop: 10 }}>%</span>
-          </div>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+        <ShareCard
+          ref={cardRef}
+          headline={`📍 ${result.location}`}
+          sub={`${fmtDate(result.startDate)} → ${fmtDate(result.endDate)}${result.resolvedPlace ? ` · ${result.resolvedPlace}` : ''}`}
+          extra={result.moon ? `${result.moon.emoji} ${result.moon.name}` : null}
+          value={result.avgSky} valueLabel="โอกาสฟ้าเปิด" color={skc} vibe={result.vibe}
+          secondary={{ label: 'บาปรวมทีม', value: result.teamSin, color: sc }}
+        />
+        <div style={{ width: '100%', maxWidth: 400 }}>
+          <ShareButtons cardRef={cardRef} filename={`trip-${result.location}`} shareText={`ทริป ${result.location} ฟ้าจะเปิด ${result.avgSky}%! มาเช็คทริปแกบ้าง 🔮`} />
         </div>
       </div>
 
@@ -77,13 +64,7 @@ export default function TripResult({ result, onReset }) {
 
       <div style={C}><p style={ST}>🤖 AI วิเคราะห์ทริปนี้</p><p style={{ fontSize: '0.93rem', lineHeight: 1.8, color: '#E8EDFF' }}>{result.analysis}</p></div>
       <FallbackNote show={result.fallback} />
-      <div style={C}><p style={ST}>🪬 แก้เคล็ดก่อนขึ้นดอย</p><Rem items={result.remedies} /></div>
-
-      {/* การ์ดแชร์ + ปุ่ม */}
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <ShareCard ref={cardRef} headline={`📍 ${result.location}`} sub={`${fmtDate(result.startDate)} → ${fmtDate(result.endDate)}`} value={result.avgSky} valueLabel="โอกาสฟ้าเปิด" color={skc} vibe={result.vibe} />
-      </div>
-      <ShareButtons cardRef={cardRef} filename={`trip-${result.location}`} shareText={`ทริป ${result.location} ฟ้าจะเปิด ${result.avgSky}%! มาเช็คทริปแกบ้าง 🔮`} />
+      <div style={C}><p style={ST}>🪬 แก้เคล็ดก่อนขึ้นดอย · <span style={{ color: sc }}>{remedyTier(result.teamSin).label}</span></p><Rem items={result.remedies} /></div>
 
       <RstBtn onClick={onReset} label="🔄 ทำนายทริปใหม่" />
     </div>
